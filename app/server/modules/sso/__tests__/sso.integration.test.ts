@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { db } from "~/server/db/db";
 import { account, invitation, member, organization, ssoProvider, usersTable } from "~/server/db/schema";
 import { ssoIntegration } from "../sso.integration";
+import { ensureDefaultOrg } from "~/server/lib/auth/helpers/create-default-org";
 
 function createMockSsoCallbackContext(providerId: string): GenericEndpointContext {
 	return {
@@ -279,5 +280,52 @@ describe("ssoIntegration.resolveOrgMembership", () => {
 
 		const ctx = createMockSsoCallbackContext("oidc-org-b");
 		await expect(ssoIntegration.resolveOrgMembership(userId, ctx)).rejects.toThrow("invite-only");
+	});
+
+	test("keeps invited org assignment when session context loses providerId after user creation", async () => {
+		const userId = await createUser("alice@example.com", randomSlug("alice"));
+		const inviterId = await createUser("inviter@example.com", randomSlug("inviter"));
+		const invitedOrgId = randomId();
+
+		await db.insert(organization).values({
+			id: invitedOrgId,
+			name: "Acme Corp",
+			slug: randomSlug("acme"),
+			createdAt: new Date(),
+		});
+
+		await db.insert(ssoProvider).values({
+			id: randomId(),
+			providerId: "oidc-acme",
+			organizationId: invitedOrgId,
+			userId: inviterId,
+			issuer: "https://issuer.example.com",
+			domain: "example.com",
+		});
+
+		await db.insert(invitation).values({
+			id: randomId(),
+			organizationId: invitedOrgId,
+			email: "alice@example.com",
+			role: "member",
+			status: "pending",
+			expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+			createdAt: new Date(),
+			inviterId,
+		});
+
+		const user = await db.query.usersTable.findFirst({ where: { id: userId } });
+		if (!user) {
+			throw new Error("Expected user to exist");
+		}
+
+		await ssoIntegration.onUserCreated(user, createMockSsoCallbackContext("oidc-acme"));
+
+		const membership = await ensureDefaultOrg(userId);
+
+		expect(membership.organizationId).toBe(invitedOrgId);
+
+		const [updatedInvitation] = await db.select().from(invitation).where(eq(invitation.organizationId, invitedOrgId));
+		expect(updatedInvitation.status).toBe("accepted");
 	});
 });

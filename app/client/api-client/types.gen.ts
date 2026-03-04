@@ -23,138 +23,6 @@ export type GetStatusResponses = {
 
 export type GetStatusResponse = GetStatusResponses[keyof GetStatusResponses];
 
-export type GetPublicSsoProvidersData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/sso-providers';
-};
-
-export type GetPublicSsoProvidersResponses = {
-    /**
-     * List of public SSO providers
-     */
-    200: {
-        providers: Array<{
-            organizationSlug: string;
-            providerId: string;
-        }>;
-    };
-};
-
-export type GetPublicSsoProvidersResponse = GetPublicSsoProvidersResponses[keyof GetPublicSsoProvidersResponses];
-
-export type GetSsoSettingsData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/api/v1/auth/sso-settings';
-};
-
-export type GetSsoSettingsResponses = {
-    /**
-     * SSO settings for the active organization
-     */
-    200: {
-        invitations: Array<{
-            email: string;
-            expiresAt: string;
-            id: string;
-            role: string;
-            status: string;
-        }>;
-        providers: Array<{
-            autoLinkMatchingEmails: boolean;
-            domain: string;
-            issuer: string;
-            organizationId: string | null;
-            providerId: string;
-            type: string;
-        }>;
-    };
-};
-
-export type GetSsoSettingsResponse = GetSsoSettingsResponses[keyof GetSsoSettingsResponses];
-
-export type DeleteSsoProviderData = {
-    body?: never;
-    path: {
-        providerId: string;
-    };
-    query?: never;
-    url: '/api/v1/auth/sso-providers/{providerId}';
-};
-
-export type DeleteSsoProviderErrors = {
-    /**
-     * Forbidden
-     */
-    403: unknown;
-    /**
-     * Provider not found
-     */
-    404: unknown;
-};
-
-export type DeleteSsoProviderResponses = {
-    /**
-     * SSO provider deleted successfully
-     */
-    200: unknown;
-};
-
-export type UpdateSsoProviderAutoLinkingData = {
-    body?: {
-        enabled: boolean;
-    };
-    path: {
-        providerId: string;
-    };
-    query?: never;
-    url: '/api/v1/auth/sso-providers/{providerId}/auto-linking';
-};
-
-export type UpdateSsoProviderAutoLinkingErrors = {
-    /**
-     * Forbidden
-     */
-    403: unknown;
-    /**
-     * Provider not found
-     */
-    404: unknown;
-};
-
-export type UpdateSsoProviderAutoLinkingResponses = {
-    /**
-     * SSO provider auto-linking setting updated successfully
-     */
-    200: unknown;
-};
-
-export type DeleteSsoInvitationData = {
-    body?: never;
-    path: {
-        invitationId: string;
-    };
-    query?: never;
-    url: '/api/v1/auth/sso-invitations/{invitationId}';
-};
-
-export type DeleteSsoInvitationErrors = {
-    /**
-     * Forbidden
-     */
-    403: unknown;
-};
-
-export type DeleteSsoInvitationResponses = {
-    /**
-     * SSO invitation deleted successfully
-     */
-    200: unknown;
-};
-
 export type GetAdminUsersData = {
     body?: never;
     path?: never;
@@ -268,7 +136,7 @@ export type GetOrgMembersResponses = {
 export type GetOrgMembersResponse = GetOrgMembersResponses[keyof GetOrgMembersResponses];
 
 export type UpdateMemberRoleData = {
-    body?: {
+    body: {
         role: 'admin' | 'member';
     };
     path: {
@@ -319,6 +187,138 @@ export type RemoveOrgMemberErrors = {
 export type RemoveOrgMemberResponses = {
     /**
      * Member removed successfully
+     */
+    200: unknown;
+};
+
+export type GetPublicSsoProvidersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/sso-providers';
+};
+
+export type GetPublicSsoProvidersResponses = {
+    /**
+     * List of public SSO providers
+     */
+    200: {
+        providers: Array<{
+            organizationSlug: string;
+            providerId: string;
+        }>;
+    };
+};
+
+export type GetPublicSsoProvidersResponse = GetPublicSsoProvidersResponses[keyof GetPublicSsoProvidersResponses];
+
+export type GetSsoSettingsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/auth/sso-settings';
+};
+
+export type GetSsoSettingsResponses = {
+    /**
+     * SSO settings for the active organization
+     */
+    200: {
+        invitations: Array<{
+            email: string;
+            expiresAt: string;
+            id: string;
+            role: string;
+            status: string;
+        }>;
+        providers: Array<{
+            autoLinkMatchingEmails: boolean;
+            domain: string;
+            issuer: string;
+            organizationId: string | null;
+            providerId: string;
+            type: string;
+        }>;
+    };
+};
+
+export type GetSsoSettingsResponse = GetSsoSettingsResponses[keyof GetSsoSettingsResponses];
+
+export type DeleteSsoProviderData = {
+    body?: never;
+    path: {
+        providerId: string;
+    };
+    query?: never;
+    url: '/api/v1/auth/sso-providers/{providerId}';
+};
+
+export type DeleteSsoProviderErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Provider not found
+     */
+    404: unknown;
+};
+
+export type DeleteSsoProviderResponses = {
+    /**
+     * SSO provider deleted successfully
+     */
+    200: unknown;
+};
+
+export type UpdateSsoProviderAutoLinkingData = {
+    body: {
+        enabled: boolean;
+    };
+    path: {
+        providerId: string;
+    };
+    query?: never;
+    url: '/api/v1/auth/sso-providers/{providerId}/auto-linking';
+};
+
+export type UpdateSsoProviderAutoLinkingErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+    /**
+     * Provider not found
+     */
+    404: unknown;
+};
+
+export type UpdateSsoProviderAutoLinkingResponses = {
+    /**
+     * SSO provider auto-linking setting updated successfully
+     */
+    200: unknown;
+};
+
+export type DeleteSsoInvitationData = {
+    body?: never;
+    path: {
+        invitationId: string;
+    };
+    query?: never;
+    url: '/api/v1/auth/sso-invitations/{invitationId}';
+};
+
+export type DeleteSsoInvitationErrors = {
+    /**
+     * Forbidden
+     */
+    403: unknown;
+};
+
+export type DeleteSsoInvitationResponses = {
+    /**
+     * SSO invitation deleted successfully
      */
     200: unknown;
 };
@@ -399,7 +399,7 @@ export type ListVolumesResponses = {
 export type ListVolumesResponse = ListVolumesResponses[keyof ListVolumesResponses];
 
 export type CreateVolumeData = {
-    body?: {
+    body: {
         config: {
             backend: 'directory';
             path: string;
@@ -524,7 +524,7 @@ export type CreateVolumeResponses = {
 export type CreateVolumeResponse = CreateVolumeResponses[keyof CreateVolumeResponses];
 
 export type TestConnectionData = {
-    body?: {
+    body: {
         config: {
             backend: 'directory';
             path: string;
@@ -703,7 +703,7 @@ export type GetVolumeResponses = {
 export type GetVolumeResponse = GetVolumeResponses[keyof GetVolumeResponses];
 
 export type UpdateVolumeData = {
-    body?: {
+    body: {
         autoRemount?: boolean;
         config?: {
             backend: 'directory';
@@ -1168,7 +1168,7 @@ export type ListRepositoriesResponses = {
 export type ListRepositoriesResponse = ListRepositoriesResponses[keyof ListRepositoriesResponses];
 
 export type CreateRepositoryData = {
-    body?: {
+    body: {
         config: {
             accessKeyId: string;
             backend: 'r2';
@@ -1588,7 +1588,7 @@ export type GetRepositoryResponses = {
 export type GetRepositoryResponse = GetRepositoryResponses[keyof GetRepositoryResponses];
 
 export type UpdateRepositoryData = {
-    body?: {
+    body: {
         compressionMode?: 'auto' | 'max' | 'off';
         config?: {
             accessKeyId: string;
@@ -1986,7 +1986,7 @@ export type GetRepositoryStatsResponses = {
 export type GetRepositoryStatsResponse = GetRepositoryStatsResponses[keyof GetRepositoryStatsResponses];
 
 export type DeleteSnapshotsData = {
-    body?: {
+    body: {
         snapshotIds: Array<string>;
     };
     path: {
@@ -2208,7 +2208,7 @@ export type DumpSnapshotResponses = {
 export type DumpSnapshotResponse = DumpSnapshotResponses[keyof DumpSnapshotResponses];
 
 export type RestoreSnapshotData = {
-    body?: {
+    body: {
         snapshotId: string;
         delete?: boolean;
         exclude?: Array<string>;
@@ -2315,7 +2315,7 @@ export type UnlockRepositoryResponses = {
 export type UnlockRepositoryResponse = UnlockRepositoryResponses[keyof UnlockRepositoryResponses];
 
 export type TagSnapshotsData = {
-    body?: {
+    body: {
         snapshotIds: Array<string>;
         add?: Array<string>;
         remove?: Array<string>;
@@ -2340,7 +2340,7 @@ export type TagSnapshotsResponses = {
 export type TagSnapshotsResponse = TagSnapshotsResponses[keyof TagSnapshotsResponses];
 
 export type DevPanelExecData = {
-    body?: {
+    body: {
         command: string;
         args?: Array<string>;
     };
@@ -2381,6 +2381,7 @@ export type ListBackupSchedulesResponses = {
     200: Array<{
         createdAt: number;
         cronExpression: string;
+        customResticParams: Array<string> | null;
         enabled: boolean;
         excludeIfPresent: Array<string> | null;
         excludePatterns: Array<string> | null;
@@ -2651,12 +2652,13 @@ export type ListBackupSchedulesResponses = {
 export type ListBackupSchedulesResponse = ListBackupSchedulesResponses[keyof ListBackupSchedulesResponses];
 
 export type CreateBackupScheduleData = {
-    body?: {
+    body: {
         cronExpression: string;
         enabled: boolean;
         name: string;
         repositoryId: string;
         volumeId: number | string;
+        customResticParams?: Array<string>;
         excludeIfPresent?: Array<string>;
         excludePatterns?: Array<string>;
         includePatterns?: Array<string>;
@@ -2684,6 +2686,7 @@ export type CreateBackupScheduleResponses = {
     201: {
         createdAt: number;
         cronExpression: string;
+        customResticParams: Array<string> | null;
         enabled: boolean;
         excludeIfPresent: Array<string> | null;
         excludePatterns: Array<string> | null;
@@ -2749,6 +2752,7 @@ export type GetBackupScheduleResponses = {
     200: {
         createdAt: number;
         cronExpression: string;
+        customResticParams: Array<string> | null;
         enabled: boolean;
         excludeIfPresent: Array<string> | null;
         excludePatterns: Array<string> | null;
@@ -3019,9 +3023,10 @@ export type GetBackupScheduleResponses = {
 export type GetBackupScheduleResponse = GetBackupScheduleResponses[keyof GetBackupScheduleResponses];
 
 export type UpdateBackupScheduleData = {
-    body?: {
+    body: {
         cronExpression: string;
         repositoryId: string;
+        customResticParams?: Array<string>;
         enabled?: boolean;
         excludeIfPresent?: Array<string>;
         excludePatterns?: Array<string>;
@@ -3053,6 +3058,7 @@ export type UpdateBackupScheduleResponses = {
     200: {
         createdAt: number;
         cronExpression: string;
+        customResticParams: Array<string> | null;
         enabled: boolean;
         excludeIfPresent: Array<string> | null;
         excludePatterns: Array<string> | null;
@@ -3098,6 +3104,7 @@ export type GetBackupScheduleForVolumeResponses = {
     200: {
         createdAt: number;
         cronExpression: string;
+        customResticParams: Array<string> | null;
         enabled: boolean;
         excludeIfPresent: Array<string> | null;
         excludePatterns: Array<string> | null;
@@ -3529,7 +3536,7 @@ export type GetScheduleNotificationsResponses = {
 export type GetScheduleNotificationsResponse = GetScheduleNotificationsResponses[keyof GetScheduleNotificationsResponses];
 
 export type UpdateScheduleNotificationsData = {
-    body?: {
+    body: {
         assignments: Array<{
             destinationId: number;
             notifyOnFailure: boolean;
@@ -3837,7 +3844,7 @@ export type GetScheduleMirrorsResponses = {
 export type GetScheduleMirrorsResponse = GetScheduleMirrorsResponses[keyof GetScheduleMirrorsResponses];
 
 export type UpdateScheduleMirrorsData = {
-    body?: {
+    body: {
         mirrors: Array<{
             enabled: boolean;
             repositoryId: string;
@@ -4070,7 +4077,7 @@ export type GetMirrorCompatibilityResponses = {
 export type GetMirrorCompatibilityResponse = GetMirrorCompatibilityResponses[keyof GetMirrorCompatibilityResponses];
 
 export type ReorderBackupSchedulesData = {
-    body?: {
+    body: {
         scheduleShortIds: Array<string>;
     };
     path?: never;
@@ -4202,7 +4209,7 @@ export type ListNotificationDestinationsResponses = {
 export type ListNotificationDestinationsResponse = ListNotificationDestinationsResponses[keyof ListNotificationDestinationsResponses];
 
 export type CreateNotificationDestinationData = {
-    body?: {
+    body: {
         config: {
             apiToken: string;
             priority: -1 | 0 | 1;
@@ -4466,7 +4473,7 @@ export type GetNotificationDestinationResponses = {
 export type GetNotificationDestinationResponse = GetNotificationDestinationResponses[keyof GetNotificationDestinationResponses];
 
 export type UpdateNotificationDestinationData = {
-    body?: {
+    body: {
         config?: {
             apiToken: string;
             priority: -1 | 0 | 1;
@@ -4721,7 +4728,7 @@ export type GetRegistrationStatusResponses = {
 export type GetRegistrationStatusResponse = GetRegistrationStatusResponses[keyof GetRegistrationStatusResponses];
 
 export type SetRegistrationStatusData = {
-    body?: {
+    body: {
         enabled: boolean;
     };
     path?: never;
@@ -4741,7 +4748,7 @@ export type SetRegistrationStatusResponses = {
 export type SetRegistrationStatusResponse = SetRegistrationStatusResponses[keyof SetRegistrationStatusResponses];
 
 export type DownloadResticPasswordData = {
-    body?: {
+    body: {
         password: string;
     };
     path?: never;

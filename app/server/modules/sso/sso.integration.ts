@@ -82,6 +82,21 @@ async function onUserCreate(
 	user.hasDownloadedResticPassword = true;
 }
 
+async function resolveOrgMembershipOrThrow(userId: string, ctx: GenericEndpointContext | null) {
+	const membership = await resolveOrgMembership(userId, ctx);
+	if (!membership) {
+		throw new APIError("BAD_REQUEST", {
+			message: "Unable to resolve organization membership for this SSO session",
+		});
+	}
+
+	return membership;
+}
+
+async function onUserCreated(user: User, ctx: GenericEndpointContext | null) {
+	await resolveOrgMembershipOrThrow(user.id, ctx);
+}
+
 export const ssoIntegration = {
 	plugin: sso({
 		trustEmailVerified: false,
@@ -100,6 +115,10 @@ export const ssoIntegration = {
 	isSsoCallback: isSsoCallbackRequest,
 
 	onUserCreate,
+
+	onUserCreated,
+
+	resolveOrgMembershipOrThrow,
 
 	resolveOrgMembership,
 

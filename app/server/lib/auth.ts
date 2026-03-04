@@ -83,14 +83,23 @@ export const auth = betterAuth({
 
 					return { data: user };
 				},
+				after: async (user, ctx) => {
+					if (ssoIntegration.isSsoCallback(ctx)) {
+						await ssoIntegration.onUserCreated(user, ctx);
+					}
+				},
 			},
 		},
 		session: {
 			create: {
 				before: async (session, ctx) => {
-					const membership =
-						(await ssoIntegration.resolveOrgMembership(session.userId, ctx)) ??
-						(await ensureDefaultOrg(session.userId));
+					if (ssoIntegration.isSsoCallback(ctx)) {
+						const membership = await ssoIntegration.resolveOrgMembershipOrThrow(session.userId, ctx);
+						return { data: { ...session, activeOrganizationId: membership.organizationId } };
+					}
+
+					const membership = await ensureDefaultOrg(session.userId);
+
 					return { data: { ...session, activeOrganizationId: membership.organizationId } };
 				},
 			},
