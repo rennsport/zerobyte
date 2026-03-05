@@ -152,6 +152,42 @@ describe("auth controller security", () => {
 				expect(res.status).not.toBe(401);
 			});
 		}
+
+		test("global admins can delete an account for a user outside their active organization", async () => {
+			const { headers } = await createTestSessionWithGlobalAdmin();
+			const target = await createTestSession();
+
+			const retainedAccountId = Bun.randomUUIDv7();
+			await db.insert(account).values({
+				id: retainedAccountId,
+				accountId: `credential-${retainedAccountId}`,
+				providerId: "credential",
+				userId: target.user.id,
+				password: "password-hash",
+			});
+
+			const removableAccountId = Bun.randomUUIDv7();
+			await db.insert(account).values({
+				id: removableAccountId,
+				accountId: `oidc-${removableAccountId}`,
+				providerId: "oidc-acme",
+				userId: target.user.id,
+			});
+
+			const res = await app.request(`/api/v1/auth/admin-users/${target.user.id}/accounts/${removableAccountId}`, {
+				method: "DELETE",
+				headers,
+			});
+
+			expect(res.status).toBe(200);
+
+			const deletedAccount = await db.query.account.findFirst({
+				where: { id: removableAccountId },
+				columns: { id: true },
+			});
+
+			expect(deletedAccount).toBeUndefined();
+		});
 	});
 
 	describe("invalid session handling", () => {

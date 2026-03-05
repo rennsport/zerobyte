@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from "bun:test";
 import { db } from "~/server/db/db";
-import { account, invitation, member, organization, ssoProvider, usersTable } from "~/server/db/schema";
+import { account, invitation, member, organization, sessionsTable, ssoProvider, usersTable } from "~/server/db/schema";
 import { ssoService } from "../sso.service";
 
 function randomId() {
@@ -37,10 +37,20 @@ async function createOrganization(name: string) {
 	return id;
 }
 
+async function createSession(userId: string) {
+	await db.insert(sessionsTable).values({
+		id: randomId(),
+		userId,
+		token: randomSlug("token"),
+		expiresAt: new Date(Date.now() + 60_000),
+	});
+}
+
 describe("ssoService.deleteSsoProvider", () => {
 	beforeEach(async () => {
 		await db.delete(member);
 		await db.delete(account);
+		await db.delete(sessionsTable);
 		await db.delete(invitation);
 		await db.delete(ssoProvider);
 		await db.delete(organization);
@@ -119,6 +129,8 @@ describe("ssoService.deleteSsoProvider", () => {
 				userId: accountUserB,
 			},
 		]);
+		await createSession(accountUserA);
+		await createSession(accountUserB);
 
 		const deleted = await ssoService.deleteSsoProvider(providerId, org);
 
@@ -132,9 +144,14 @@ describe("ssoService.deleteSsoProvider", () => {
 			where: { providerId },
 			columns: { id: true },
 		});
+		const remainingSessions = await db.query.sessionsTable.findMany({
+			where: { userId: { in: [accountUserA, accountUserB] } },
+			columns: { id: true },
+		});
 
 		expect(remainingProvider).toBeUndefined();
 		expect(remainingAccounts).toHaveLength(0);
+		expect(remainingSessions).toHaveLength(0);
 	});
 
 	test("deleting a reserved provider id never deletes credential accounts", async () => {

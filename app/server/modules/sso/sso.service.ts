@@ -1,6 +1,6 @@
 import { db } from "~/server/db/db";
-import { ssoProvider, account, invitation, organization } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { ssoProvider, account, invitation, organization, sessionsTable } from "~/server/db/schema";
+import { eq, and, inArray } from "drizzle-orm";
 import { isReservedSsoProviderId } from "./utils/sso-provider-id";
 import { normalizeEmail } from "./utils/sso-context";
 
@@ -83,8 +83,18 @@ export class SsoService {
 				return true;
 			}
 
+			const affectedAccounts = await tx.query.account.findMany({
+				where: { providerId: provider.providerId },
+				columns: { userId: true },
+			});
+			const affectedUserIds = [...new Set(affectedAccounts.map((row) => row.userId))];
+
 			await tx.delete(account).where(eq(account.providerId, provider.providerId));
 			await tx.delete(ssoProvider).where(eq(ssoProvider.id, provider.id));
+
+			if (affectedUserIds.length > 0) {
+				await tx.delete(sessionsTable).where(inArray(sessionsTable.userId, affectedUserIds));
+			}
 
 			return true;
 		});

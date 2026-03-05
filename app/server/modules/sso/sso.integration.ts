@@ -8,6 +8,7 @@ import { authService } from "../auth/auth.service";
 import { ssoService } from "./sso.service";
 import { validateSsoProviderId } from "./middlewares/validate-provider-id";
 import { validateSsoCallbackUrls } from "./middlewares/validate-callback-urls";
+import { authorizeSsoRegistration } from "./middlewares/authorize-registration";
 import { requireSsoInvitation } from "./middlewares/require-invitation";
 import { resolveTrustedProvidersForRequest } from "./middlewares/trust-provider-for-linking";
 import { isSsoCallbackRequest, extractProviderIdFromContext, normalizeEmail } from "./utils/sso-context";
@@ -143,7 +144,7 @@ export const ssoIntegration = {
 		},
 	}),
 
-	beforeMiddlewares: [validateSsoProviderId, validateSsoCallbackUrls] as const,
+	beforeMiddlewares: [validateSsoProviderId, validateSsoCallbackUrls, authorizeSsoRegistration] as const,
 
 	isSsoCallback: isSsoCallbackRequest,
 

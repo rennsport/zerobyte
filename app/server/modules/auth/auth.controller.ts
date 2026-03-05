@@ -49,16 +49,14 @@ export const authController = new Hono()
 	.delete("/admin-users/:userId/accounts/:accountId", requireAuth, requireAdmin, deleteUserAccountDto, async (c) => {
 		const userId = c.req.param("userId");
 		const accountId = c.req.param("accountId");
-		const organizationId = c.get("organizationId");
-
-		const result = await authService.deleteUserAccount(userId, accountId, organizationId);
-
-		if (result.forbidden) {
-			return c.json({ message: "User is not a member of this organization" }, 403);
-		}
+		const result = await authService.deleteUserAccount(userId, accountId);
 
 		if (result.lastAccount) {
 			return c.json({ message: "Cannot delete the last account of a user" }, 409);
+		}
+
+		if (result.notFound) {
+			return c.json({ message: "Account not found" }, 404);
 		}
 
 		return c.json({ success: true });

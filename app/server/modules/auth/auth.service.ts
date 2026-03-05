@@ -97,7 +97,10 @@ export class AuthService {
 
 			if (affectedUserIds.length > 0) {
 				const memberships = await tx
-					.select({ userId: member.userId, organizationId: member.organizationId })
+					.select({
+						userId: member.userId,
+						organizationId: member.organizationId,
+					})
 					.from(member)
 					.where(inArray(member.userId, affectedUserIds));
 
@@ -128,16 +131,6 @@ export class AuthService {
 	}
 
 	/**
-	 * Check if a user is a member of an organization
-	 */
-	async getUserMembership(userId: string, organizationId: string) {
-		return db.query.member.findFirst({
-			where: { AND: [{ userId }, { organizationId }] },
-			columns: { id: true },
-		});
-	}
-
-	/**
 	 * Fetch accounts for a list of users, keyed by userId
 	 */
 	async getUserAccounts(userIds: string[]) {
@@ -153,7 +146,10 @@ export class AuthService {
 			if (!grouped[row.userId]) {
 				grouped[row.userId] = [];
 			}
-			grouped[row.userId].push({ id: row.id, providerId: row.providerId });
+			grouped[row.userId].push({
+				id: row.id,
+				providerId: row.providerId,
+			});
 		}
 		return grouped;
 	}
@@ -220,7 +216,30 @@ export class AuthService {
 			return { found: true, isOwner: true } as const;
 		}
 
-		await db.delete(member).where(eq(member.id, memberId));
+		await db.transaction(async (tx) => {
+			const fallbackMembership = await tx.query.member.findFirst({
+				where: {
+					AND: [{ userId: targetMember.userId }, { organizationId: { ne: organizationId } }],
+				},
+				columns: { organizationId: true },
+			});
+
+			await tx.delete(member).where(eq(member.id, memberId));
+
+			if (fallbackMembership?.organizationId) {
+				await tx
+					.update(sessionsTable)
+					.set({
+						activeOrganizationId: fallbackMembership.organizationId,
+					})
+					.where(
+						and(eq(sessionsTable.userId, targetMember.userId), eq(sessionsTable.activeOrganizationId, organizationId)),
+					);
+				return;
+			}
+
+			await tx.delete(sessionsTable).where(eq(sessionsTable.userId, targetMember.userId));
+		});
 
 		return { found: true, isOwner: false } as const;
 	}
@@ -241,24 +260,32 @@ export class AuthService {
 	/**
 	 * Delete a single account for a user, refusing if it is the last one
 	 */
-	async deleteUserAccount(userId: string, accountId: string, organizationId: string) {
-		const membership = await this.getUserMembership(userId, organizationId);
-		if (!membership) {
-			return { lastAccount: false, forbidden: true };
-		}
-
+	async deleteUserAccount(userId: string, accountId: string) {
 		return db.transaction(async (tx) => {
+			const [targetAccount] = await tx
+				.select({ id: account.id })
+				.from(account)
+				.where(and(eq(account.id, accountId), eq(account.userId, userId)))
+				.limit(1);
+
+			if (!targetAccount) {
+				return { lastAccount: false, notFound: true };
+			}
+
 			const userAccounts = await tx.query.account.findMany({
 				where: { userId },
 				columns: { id: true },
 			});
 
 			if (userAccounts.length <= 1) {
-				return { lastAccount: true, forbidden: false };
+				return { lastAccount: true, notFound: false };
 			}
 
 			await tx.delete(account).where(and(eq(account.id, accountId), eq(account.userId, userId)));
-			return { lastAccount: false, forbidden: false };
+			// Sessions cannot be tied to a specific account/provider with the current schema,
+			// so keep active sessions intact when unlinking a single account.
+
+			return { lastAccount: false, notFound: false };
 		});
 	}
 }

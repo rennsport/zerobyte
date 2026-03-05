@@ -94,8 +94,8 @@ export const deleteUserAccountDto = describeRoute({
 		200: {
 			description: "Account deleted successfully",
 		},
-		403: {
-			description: "Forbidden",
+		404: {
+			description: "Account not found",
 		},
 		409: {
 			description: "Cannot delete the last account",

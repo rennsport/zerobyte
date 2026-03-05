@@ -24,8 +24,8 @@ export const AdvancedSection = ({ form }: AdvancedSectionProps) => {
 					</FormControl>
 					<FormDescription>
 						Advanced: enter one restic flag per line (e.g.{" "}
-						<code className="bg-muted px-1 rounded">--iexclude-larger-than 500M</code>). These are appended to the
-						backup command as-is.
+						<code className="bg-muted px-1 rounded">--exclude-larger-than 500M</code>). Only the supported flag list is
+						accepted.
 					</FormDescription>
 					<FormMessage />
 				</FormItem>
