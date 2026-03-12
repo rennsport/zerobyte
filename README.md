@@ -109,7 +109,6 @@ Zerobyte can sync operator-managed repositories and volumes from a JSON file at 
 Provisioned resources:
 
 - appear in the normal repositories and volumes screens
-- stay read-only in the UI
 - can resolve credential fields from environment variables or `/run/secrets/*` during startup sync
 
 See `examples/provisioned-resources/README.md` for a full example.
