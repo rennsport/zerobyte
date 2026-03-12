@@ -6,6 +6,7 @@ import { OPERATION_TIMEOUT } from "../../../core/constants";
 import { cryptoUtils } from "../../../utils/crypto";
 import { toMessage } from "../../../utils/errors";
 import { logger } from "@zerobyte/core/node";
+import { FILE_MODES, writeFileWithMode } from "@zerobyte/core/utils";
 import { getMountForPath } from "../../../utils/mountinfo";
 import { withTimeout } from "../../../utils/timeout";
 import type { VolumeBackend } from "../backend";
@@ -65,7 +66,7 @@ const mount = async (config: BackendConfig, mountPath: string) => {
 			options.push("StrictHostKeyChecking=no", "UserKnownHostsFile=/dev/null");
 		} else if (config.knownHosts) {
 			const knownHostsPath = getKnownHostsPath(mountPath);
-			await fs.writeFile(knownHostsPath, config.knownHosts, { mode: 0o600 });
+			await writeFileWithMode(knownHostsPath, config.knownHosts, FILE_MODES.ownerReadWrite);
 			options.push(`UserKnownHostsFile=${knownHostsPath}`, "StrictHostKeyChecking=yes");
 		}
 
@@ -84,7 +85,7 @@ const mount = async (config: BackendConfig, mountPath: string) => {
 			if (!normalizedKey.endsWith("\n")) {
 				normalizedKey += "\n";
 			}
-			await fs.writeFile(keyPath, normalizedKey, { mode: 0o600 });
+			await writeFileWithMode(keyPath, normalizedKey, FILE_MODES.ownerReadWrite);
 			options.push(`IdentityFile=${keyPath}`);
 		}
 

@@ -1,9 +1,9 @@
 import crypto from "node:crypto";
-import fs from "node:fs/promises";
 import path from "node:path";
 import type { ResticDeps, ResticEnv } from "../types";
 import type { RepositoryConfig } from "../schemas";
 import { logger } from "../../node";
+import { FILE_MODES, writeFileWithMode } from "../../utils/fs.js";
 
 export const buildEnv = async (
 	config: RepositoryConfig,
@@ -19,17 +19,13 @@ export const buildEnv = async (
 		const decryptedPassword = await deps.resolveSecret(config.customPassword);
 		const passwordFilePath = path.join("/tmp", `zerobyte-pass-${crypto.randomBytes(8).toString("hex")}.txt`);
 
-		await fs.writeFile(passwordFilePath, decryptedPassword, {
-			mode: 0o600,
-		});
+		await writeFileWithMode(passwordFilePath, decryptedPassword, FILE_MODES.ownerReadWrite);
 		env.RESTIC_PASSWORD_FILE = passwordFilePath;
 	} else {
 		const encryptedPassword = await deps.getOrganizationResticPassword(organizationId);
 		const decryptedPassword = await deps.resolveSecret(encryptedPassword);
 		const passwordFilePath = path.join("/tmp", `zerobyte-pass-${crypto.randomBytes(8).toString("hex")}.txt`);
-		await fs.writeFile(passwordFilePath, decryptedPassword, {
-			mode: 0o600,
-		});
+		await writeFileWithMode(passwordFilePath, decryptedPassword, FILE_MODES.ownerReadWrite);
 		env.RESTIC_PASSWORD_FILE = passwordFilePath;
 	}
 
@@ -51,9 +47,7 @@ export const buildEnv = async (
 		case "gcs": {
 			const decryptedCredentials = await deps.resolveSecret(config.credentialsJson);
 			const credentialsPath = path.join("/tmp", `zerobyte-gcs-${crypto.randomBytes(8).toString("hex")}.json`);
-			await fs.writeFile(credentialsPath, decryptedCredentials, {
-				mode: 0o600,
-			});
+			await writeFileWithMode(credentialsPath, decryptedCredentials, FILE_MODES.ownerReadWrite);
 			env.GOOGLE_PROJECT_ID = config.projectId;
 			env.GOOGLE_APPLICATION_CREDENTIALS = credentialsPath;
 			break;
@@ -89,7 +83,7 @@ export const buildEnv = async (
 				throw new Error("Passphrase-protected SSH keys are not supported. Please provide an unencrypted private key.");
 			}
 
-			await fs.writeFile(keyPath, normalizedKey, { mode: 0o600 });
+			await writeFileWithMode(keyPath, normalizedKey, FILE_MODES.ownerReadWrite);
 
 			env._SFTP_KEY_PATH = keyPath;
 
@@ -124,9 +118,7 @@ export const buildEnv = async (
 				sshArgs.push("-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null");
 			} else if (config.knownHosts) {
 				const knownHostsPath = path.join("/tmp", `zerobyte-known-hosts-${crypto.randomBytes(8).toString("hex")}`);
-				await fs.writeFile(knownHostsPath, config.knownHosts, {
-					mode: 0o600,
-				});
+				await writeFileWithMode(knownHostsPath, config.knownHosts, FILE_MODES.ownerReadWrite);
 				env._SFTP_KNOWN_HOSTS_PATH = knownHostsPath;
 				sshArgs.push("-o", "StrictHostKeyChecking=yes", "-o", `UserKnownHostsFile=${knownHostsPath}`);
 			}
@@ -144,7 +136,7 @@ export const buildEnv = async (
 	if (config.cacert) {
 		const decryptedCert = await deps.resolveSecret(config.cacert);
 		const certPath = path.join("/tmp", `zerobyte-cacert-${crypto.randomBytes(8).toString("hex")}.pem`);
-		await fs.writeFile(certPath, decryptedCert, { mode: 0o600 });
+		await writeFileWithMode(certPath, decryptedCert, FILE_MODES.ownerReadWrite);
 		env.RESTIC_CACERT = certPath;
 	}
 
