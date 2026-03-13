@@ -38,9 +38,15 @@ export const auth = betterAuth({
 		protocol: "auto",
 	},
 	trustedOrigins: config.trustedOrigins,
+	rateLimit: {
+		enabled: !config.disableRateLimiting,
+	},
 	advanced: {
 		cookiePrefix: "zerobyte",
 		useSecureCookies: config.isSecure,
+		ipAddress: {
+			disableIpTracking: config.disableRateLimiting,
+		},
 	},
 	onAPIError: {
 		throw: true,

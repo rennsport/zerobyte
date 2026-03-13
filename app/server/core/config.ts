@@ -55,7 +55,7 @@ const envSchema = z
 			.filter(Boolean)
 			.concat(s.BASE_URL) ?? [s.BASE_URL],
 		trustProxy: s.TRUST_PROXY === "true",
-		disableRateLimiting: s.DISABLE_RATE_LIMITING === "true",
+		disableRateLimiting: s.DISABLE_RATE_LIMITING === "true" || s.NODE_ENV === "test",
 		appSecret: s.APP_SECRET,
 		baseUrl: s.BASE_URL,
 		isSecure: s.BASE_URL?.startsWith("https://") ?? false,

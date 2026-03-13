@@ -52,18 +52,16 @@ export const createApp = () => {
 		app.use(honoLogger());
 	}
 
-	if (!config.disableRateLimiting) {
-		app.use(
-			rateLimiter({
-				windowMs: 60 * 5 * 1000,
-				limit: 1000,
-				keyGenerator: (c) => c.req.header("x-forwarded-for") ?? "",
-				skip: () => {
-					return config.__prod__ === false;
-				},
-			}),
-		);
-	}
+	app.use(
+		rateLimiter({
+			windowMs: 60 * 5 * 1000,
+			limit: 1000,
+			keyGenerator: (c) => c.req.header("x-forwarded-for") ?? "",
+			skip: () => {
+				return config.disableRateLimiting;
+			},
+		}),
+	);
 
 	app.use(
 		bodyLimit({
