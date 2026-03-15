@@ -7,7 +7,7 @@ import { logger } from "@zerobyte/core/node";
 import { getMountForPath } from "../../../utils/mountinfo";
 import { withTimeout } from "../../../utils/timeout";
 import type { VolumeBackend } from "../backend";
-import { executeMount, executeUnmount } from "../utils/backend-utils";
+import { assertMounted, executeMount, executeUnmount } from "../utils/backend-utils";
 import { BACKEND_STATUS, type BackendConfig } from "~/schemas/volumes";
 
 const mount = async (config: BackendConfig, path: string) => {
@@ -135,21 +135,7 @@ const unmount = async (path: string) => {
 
 const checkHealth = async (path: string) => {
 	const run = async () => {
-		try {
-			await fs.access(path);
-		} catch {
-			throw new Error("Volume is not mounted");
-		}
-
-		const mount = await getMountForPath(path);
-
-		if (!mount || mount.mountPoint !== path) {
-			throw new Error("Volume is not mounted");
-		}
-
-		if (mount.fstype !== "fuse" && mount.fstype !== "davfs") {
-			throw new Error(`Path ${path} is not mounted as WebDAV (found ${mount.fstype}).`);
-		}
+		await assertMounted(path, (fstype) => fstype === "fuse" || fstype === "davfs");
 
 		logger.debug(`WebDAV volume at ${path} is healthy and mounted.`);
 		return { status: BACKEND_STATUS.mounted };

@@ -3,6 +3,7 @@ import * as npath from "node:path";
 import { toMessage } from "../../../utils/errors";
 import { logger } from "@zerobyte/core/node";
 import { safeExec } from "@zerobyte/core/node";
+import { getMountForPath } from "../../../utils/mountinfo";
 
 export const executeMount = async (args: string[]): Promise<void> => {
 	const shouldBeVerbose = process.env.LOG_LEVEL === "debug" || process.env.NODE_ENV !== "production";
@@ -41,6 +42,24 @@ export const executeUnmount = async (path: string): Promise<void> => {
 
 	if (result.exitCode !== 0) {
 		throw new Error(`Mount command failed with exit code ${result.exitCode}: ${stderr?.trim()}`);
+	}
+};
+
+export const assertMounted = async (path: string, isExpectedFilesystem: (fstype: string) => boolean) => {
+	try {
+		await fs.access(path);
+	} catch {
+		throw new Error("Volume is not mounted");
+	}
+
+	const mount = await getMountForPath(path);
+
+	if (!mount || mount.mountPoint !== path) {
+		throw new Error("Volume is not mounted");
+	}
+
+	if (!isExpectedFilesystem(mount.fstype)) {
+		throw new Error(`Path ${path} is not mounted as correct fstype (found ${mount.fstype}).`);
 	}
 };
 
